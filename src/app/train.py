@@ -1,4 +1,5 @@
 # Importing Libraries 
+import pickle
 import pandas as pd
 import numpy as np
 import seaborn as sns
@@ -159,3 +160,32 @@ print('=========================================')
 scores_df=pd.DataFrame(best_score)
 
 print(f'[Info] Best scores for each model:\n{scores_df}')
+
+# Best hyperparameters found from RandomizedSearchCV
+best_params = {
+    'Random Forest': {'n_estimators': 300, 'min_samples_split': 2, 'min_samples_leaf': 1, 'max_depth': 5, 'bootstrap': True},
+    'Gradient Boosting': {'subsample': 0.7, 'n_estimators': 200, 'min_samples_split': 2, 'min_samples_leaf': 1, 'max_depth': 3, 'max_features': 'sqrt', 'learning_rate': 0.1},
+    'Neural Network': {'hidden_layer_sizes': (100,), 'alpha': 0.0001, 'activation': 'relu'}
+}
+
+# Create and fit the models with the best hyperparameters
+fitted_models = {}
+for model_name, params in best_params.items():
+    model = models[model_name][0].set_params(**params)
+    pipe = Pipeline([('Preprocessor', preprocessor), ('model', model)])
+    pipe.fit(x_train, y_train)
+    fitted_models[model_name] = pipe
+
+# Now fitted_models dictionary contains the fitted models
+    
+# Use the fitted models to make predictions
+predictions = {}
+for model_name, model in fitted_models.items():
+    predictions[model_name] = model.predict(x_test)
+
+# Now the 'predictions' dictionary contains the predictions made by each model
+    
+# Save the fitted models
+for model_name, model in fitted_models.items():
+    with open(f"../../model/{model_name}_pipeline.pkl", "wb") as f:
+        pickle.dump(model, f)
